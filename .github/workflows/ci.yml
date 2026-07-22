@@ -28,18 +28,8 @@ jobs:
       - name: Pick an available iPhone simulator
         id: sim
         run: |
-          DEVICE=$(xcrun simctl list devices available iPhone -j \
-            | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-names = []
-for runtime, devices in data['devices'].items():
-    for d in devices:
-        if d.get('isAvailable', True):
-            names.append(d['name'])
-print(names[-1] if names else '')
-")
-          if [ -z "$DEVICE" ]; then
+          DEVICE=$(xcrun simctl list devices available iPhone -j | jq -r '[.devices[][] | select(.isAvailable) | .name] | last')
+          if [ -z "$DEVICE" ] || [ "$DEVICE" = "null" ]; then
             echo "No available iPhone simulator found" >&2
             exit 1
           fi
