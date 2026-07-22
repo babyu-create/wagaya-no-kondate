@@ -28,7 +28,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.babyucreate.wagayanokondate
-        PRODUCT_NAME: わが家の献立
+        PRODUCT_MODULE_NAME: WagayaNoKondate
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: false
         ENABLE_PREVIEWS: true
