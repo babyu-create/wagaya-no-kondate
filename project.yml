@@ -1,0 +1,68 @@
+name: WagayaNoKondate
+options:
+  bundleIdPrefix: com.babyucreate.wagayanokondate
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+
+targets:
+  WagayaNoKondate:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources
+    resources:
+      - path: Resources/Assets.xcassets
+    entitlements:
+      path: Resources/WagayaNoKondate.entitlements
+      properties:
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.babyucreate.wagayanokondate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.babyucreate.wagayanokondate
+        PRODUCT_NAME: わが家の献立
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: false
+        ENABLE_PREVIEWS: true
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: わが家の献立
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSCameraUsageDescription: レシピ写真の撮影に使用します
+        NSPhotoLibraryUsageDescription: レシピ写真の選択に使用します
+
+  WagayaNoKondateTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Tests/WagayaNoKondateTests
+    dependencies:
+      - target: WagayaNoKondate
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  WagayaNoKondate:
+    build:
+      targets:
+        WagayaNoKondate: all
+        WagayaNoKondateTests: [test]
+    test:
+      config: Debug
+      targets:
+        - WagayaNoKondateTests
+    run:
+      config: Debug
