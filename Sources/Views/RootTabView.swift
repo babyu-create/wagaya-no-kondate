@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct RootTabView: View {
+    @EnvironmentObject private var environment: AppEnvironment
+
     var body: some View {
         TabView {
             NavigationStack {
-                Text("レシピ")
-                    .navigationTitle("レシピ")
+                RecipeListView(repository: environment.recipeRepository)
             }
             .tabItem {
                 Label("レシピ", systemImage: "fork.knife")
@@ -48,4 +49,5 @@ struct RootTabView: View {
 
 #Preview {
     RootTabView()
+        .environmentObject(AppEnvironment())
 }
