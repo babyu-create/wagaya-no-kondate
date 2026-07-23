@@ -54,6 +54,8 @@ private struct RootTabContentView: View {
                 Label("設定", systemImage: "gearshape")
             }
         }
+        .tint(AppTheme.accent)
+        .fontDesign(.rounded)
         .sheet(
             isPresented: Binding(
                 get: { memberDirectory.displayName(for: environment.currentMemberID) == nil },

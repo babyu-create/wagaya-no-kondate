@@ -9,6 +9,19 @@ struct NameOnboardingSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    VStack(spacing: 12) {
+                        Image(systemName: "fork.knife.circle.fill")
+                            .font(.system(size: 56))
+                            .foregroundStyle(AppTheme.accent)
+                        Text("はじめまして！")
+                            .font(.title2.bold())
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                }
+                .listRowBackground(Color.clear)
+
                 Section("お名前") {
                     TextField("例: お母さん、たろう", text: $name)
                 }
@@ -17,7 +30,7 @@ struct NameOnboardingSheet: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            .navigationTitle("はじめまして！")
+            .warmScrollBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

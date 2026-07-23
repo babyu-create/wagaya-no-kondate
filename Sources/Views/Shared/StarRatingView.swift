@@ -4,7 +4,7 @@ struct StarRatingView: View {
     var rating: Double
     var maxRating: Int = 5
     var size: CGFloat = 16
-    var color: Color = .yellow
+    var color: Color = AppTheme.starGold
 
     var body: some View {
         HStack(spacing: 2) {
@@ -32,7 +32,7 @@ struct StarRatingPicker: View {
     @Binding var rating: Int
     var maxRating: Int = 5
     var size: CGFloat = 28
-    var color: Color = .yellow
+    var color: Color = AppTheme.starGold
 
     var body: some View {
         HStack(spacing: 6) {

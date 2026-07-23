@@ -24,13 +24,17 @@ struct RecipeListView: View {
                         NavigationLink(value: recipe) {
                             RecipeRow(recipe: recipe)
                         }
+                        .warmCardRow()
                     }
                     .onDelete { offsets in
                         Task { await viewModel.delete(at: offsets) }
                     }
                 }
+                .listStyle(.plain)
+                .warmScrollBackground()
             }
         }
+        .background(AppTheme.background)
         .navigationTitle("レシピ")
         .navigationDestination(for: Recipe.self) { recipe in
             RecipeDetailView(recipe: recipe)

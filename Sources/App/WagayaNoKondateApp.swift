@@ -10,10 +10,15 @@ struct WagayaNoKondateApp: App {
                 if environment.isBootstrapped {
                     RootTabView()
                 } else {
-                    ProgressView("準備しています…")
+                    ZStack {
+                        AppTheme.background.ignoresSafeArea()
+                        ProgressView("準備しています…")
+                            .tint(AppTheme.accent)
+                    }
                 }
             }
             .environmentObject(environment)
+            .fontDesign(.rounded)
             .task {
                 await environment.bootstrap()
             }

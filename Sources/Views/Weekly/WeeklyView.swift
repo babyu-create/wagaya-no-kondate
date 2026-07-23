@@ -43,6 +43,7 @@ private struct WeeklyContentView: View {
                         Section("今週食べたい（\(viewModel.wishedRecipes.count)件）") {
                             ForEach(viewModel.wishedRecipes) { recipe in
                                 weeklyRow(recipe)
+                                    .warmCardRow()
                             }
                         }
                     }
@@ -50,9 +51,12 @@ private struct WeeklyContentView: View {
                     Section("すべてのレシピ") {
                         ForEach(viewModel.recipes) { recipe in
                             weeklyRow(recipe)
+                                .warmCardRow()
                         }
                     }
                 }
+                .listStyle(.plain)
+                .warmScrollBackground()
             }
         }
         .navigationTitle("今週")
@@ -92,7 +96,7 @@ private struct WeeklyContentView: View {
                 }
                 Spacer()
                 Image(systemName: viewModel.isWishedByMe(recipe.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(viewModel.isWishedByMe(recipe.id) ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(viewModel.isWishedByMe(recipe.id) ? AppTheme.accent : Color.secondary)
             }
         }
     }

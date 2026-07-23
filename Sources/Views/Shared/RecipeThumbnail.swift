@@ -13,9 +13,9 @@ struct RecipeThumbnail: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    Color(.secondarySystemBackground)
+                    AppTheme.warmPlaceholder
                     Image(systemName: "fork.knife")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.accent)
                 }
             }
         }

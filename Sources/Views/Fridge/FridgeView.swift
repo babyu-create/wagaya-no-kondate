@@ -55,6 +55,7 @@ private struct FridgeContentView: View {
                     ForEach(viewModel.makeableRecipes) { match in
                         Label(match.recipe.title, systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                            .warmCardRow()
                     }
                 }
             }
@@ -68,6 +69,7 @@ private struct FridgeContentView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                        .warmCardRow()
                     }
                 }
             }
@@ -86,6 +88,7 @@ private struct FridgeContentView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        .warmCardRow()
                     }
                     .onDelete { offsets in
                         Task { await viewModel.delete(at: offsets) }
@@ -93,6 +96,8 @@ private struct FridgeContentView: View {
                 }
             }
         }
+        .listStyle(.plain)
+        .warmScrollBackground()
         .navigationTitle("冷蔵庫")
         .task {
             await viewModel.load()

@@ -39,13 +39,16 @@ private struct SettingsContentView: View {
                         ProgressView()
                     } else {
                         Label("家族を招待する", systemImage: "person.badge.plus")
+                            .foregroundStyle(AppTheme.accent)
                     }
                 }
                 .disabled(isPreparingShare)
+                .warmCardRow()
 
                 Text("招待リンクを送ると、家族のiPhoneでレシピや投票がすべて共有されます。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .warmCardRow()
             }
 
             Section("このデバイスの情報") {
@@ -56,7 +59,9 @@ private struct SettingsContentView: View {
                     LabeledContent("あなたの表示名", value: myDisplayName)
                 }
                 .foregroundStyle(.primary)
+                .warmCardRow()
                 LabeledContent("メンバーID", value: String(environment.currentMemberID.prefix(8)))
+                    .warmCardRow()
             }
 
             if let errorMessage {
@@ -66,6 +71,8 @@ private struct SettingsContentView: View {
                 }
             }
         }
+        .listStyle(.plain)
+        .warmScrollBackground()
         .navigationTitle("設定")
         .sheet(isPresented: $isSharing) {
             if let share, let cloudKitService = environment.cloudKitService {

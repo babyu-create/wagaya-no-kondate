@@ -60,31 +60,36 @@ private struct RecipeDetailContentView: View {
                     }
                 }
 
-                reviewSection
+                WarmCard { reviewSection }
 
                 if !viewModel.recipe.ingredients.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("材料")
-                            .font(.headline)
-                        ForEach(viewModel.recipe.ingredients) { ingredient in
-                            HStack {
-                                Text(ingredient.displayName)
-                                Spacer()
-                                Text(ingredient.amount)
-                                    .foregroundStyle(.secondary)
+                    WarmCard {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("材料")
+                                .font(.headline)
+                            ForEach(viewModel.recipe.ingredients) { ingredient in
+                                HStack {
+                                    Text(ingredient.displayName)
+                                    Spacer()
+                                    Text(ingredient.amount)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("作り方")
-                        .font(.headline)
-                    Text(viewModel.recipe.instructions)
+                WarmCard {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("作り方")
+                            .font(.headline)
+                        Text(viewModel.recipe.instructions)
+                    }
                 }
             }
             .padding()
         }
+        .background(AppTheme.background)
         .navigationTitle(viewModel.recipe.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {

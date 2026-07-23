@@ -100,10 +100,11 @@ private struct VotingContentView: View {
                                 Spacer()
                                 if viewModel.myVote?.pollOptionID == result.optionID {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
+                                        .foregroundStyle(AppTheme.accent)
                                 }
                             }
                         }
+                        .warmCardRow()
                     }
                 }
             } header: {
@@ -116,8 +117,11 @@ private struct VotingContentView: View {
                 } label: {
                     Text("投票を締め切る")
                 }
+                .warmCardRow()
             }
         }
+        .listStyle(.plain)
+        .warmScrollBackground()
     }
 
     private func pollTypeLabel(_ poll: Poll) -> String {

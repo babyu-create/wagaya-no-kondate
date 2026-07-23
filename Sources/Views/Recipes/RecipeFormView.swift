@@ -96,6 +96,7 @@ struct RecipeFormView: View {
                 }
             }
         }
+        .warmScrollBackground()
         .navigationTitle("レシピを追加")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

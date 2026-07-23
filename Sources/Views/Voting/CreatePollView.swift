@@ -57,6 +57,7 @@ struct CreatePollView: View {
                 }
             }
         }
+        .warmScrollBackground()
         .navigationTitle("投票を作成")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -13,13 +13,14 @@ struct RecipeRow: View {
                     .font(.headline)
 
                 HStack(spacing: 8) {
-                    Label(recipe.genre.rawValue, systemImage: "tag")
+                    Label(recipe.genre.rawValue, systemImage: "tag.fill")
+                        .foregroundStyle(AppTheme.accent)
                     if let cost = recipe.costPerServing {
                         Text("¥\(cost)/人前")
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .font(.caption)
-                .foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 4)
