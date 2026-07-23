@@ -34,8 +34,7 @@ struct RootTabView: View {
             }
 
             NavigationStack {
-                Text("設定")
-                    .navigationTitle("設定")
+                SettingsView()
             }
             .tabItem {
                 Label("設定", systemImage: "gearshape")
