@@ -20,8 +20,7 @@ struct RootTabView: View {
             }
 
             NavigationStack {
-                Text("今日の投票")
-                    .navigationTitle("今日の投票")
+                VotingView()
             }
             .tabItem {
                 Label("投票", systemImage: "checkmark.seal")
