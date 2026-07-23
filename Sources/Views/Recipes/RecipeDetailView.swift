@@ -8,15 +8,22 @@ struct RecipeDetailView: View {
         RecipeDetailContentView(
             recipe: recipe,
             reviewRepository: environment.reviewRepository,
-            currentMemberID: environment.currentMemberID
+            currentMemberID: environment.currentMemberID,
+            memberDirectory: environment.memberDirectory
         )
     }
 }
 
 private struct RecipeDetailContentView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
+    @ObservedObject private var memberDirectory: MemberDirectory
 
-    init(recipe: Recipe, reviewRepository: ReviewRepository, currentMemberID: String) {
+    init(
+        recipe: Recipe,
+        reviewRepository: ReviewRepository,
+        currentMemberID: String,
+        memberDirectory: MemberDirectory
+    ) {
         _viewModel = StateObject(
             wrappedValue: RecipeDetailViewModel(
                 recipe: recipe,
@@ -24,6 +31,7 @@ private struct RecipeDetailContentView: View {
                 currentMemberID: currentMemberID
             )
         )
+        self.memberDirectory = memberDirectory
     }
 
     var body: some View {
@@ -131,7 +139,7 @@ private struct RecipeDetailContentView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(viewModel.otherReviews) { review in
                         HStack {
-                            Text("家族の1人")
+                            Text(memberDirectory.displayName(for: review.memberID) ?? "家族の1人")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()

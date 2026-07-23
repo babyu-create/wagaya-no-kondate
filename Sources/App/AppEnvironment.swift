@@ -9,8 +9,11 @@ final class AppEnvironment: ObservableObject {
     let fridgeItemRepository: FridgeItemRepository
     let pollRepository: PollRepository
     let weeklyWishRepository: WeeklyWishRepository
+    let familyMemberRepository: FamilyMemberRepository
+    let memberDirectory: MemberDirectory
 
     @Published private(set) var currentMemberID: String
+    @Published private(set) var isBootstrapped = false
 
     private static let memberIDDefaultsKey = "local.currentMemberID"
     private static let familyMemberID = "family-member-2"
@@ -40,6 +43,7 @@ final class AppEnvironment: ObservableObject {
             self.fridgeItemRepository = InMemoryFridgeItemRepository()
             self.pollRepository = InMemoryPollRepository()
             self.weeklyWishRepository = InMemoryWeeklyWishRepository()
+            self.familyMemberRepository = InMemoryFamilyMemberRepository()
             self.currentMemberID = "test-member"
         } else {
             let service = CloudKitService()
@@ -49,12 +53,29 @@ final class AppEnvironment: ObservableObject {
             self.fridgeItemRepository = CloudKitFridgeItemRepository(service: service)
             self.pollRepository = CloudKitPollRepository(service: service)
             self.weeklyWishRepository = CloudKitWeeklyWishRepository(service: service)
+            self.familyMemberRepository = CloudKitFamilyMemberRepository(service: service)
             self.currentMemberID = AppEnvironment.loadLocalMemberID()
         }
+        self.memberDirectory = MemberDirectory(repository: familyMemberRepository)
+    }
+
+    /// アプリ起動時に一度だけ呼ぶ。実際の iCloud ユーザーID解決・家族ゾーンの準備・
+    /// メンバー名簿の読み込みが終わるまで isBootstrapped は false のままにし、
+    /// 呼び出し側（WagayaNoKondateApp）はこれが true になるまで画面表示を待つ。
+    /// これにより、ゾーンが無い状態で各タブが先にデータへアクセスして
+    /// familyZoneNotFound エラーになる問題を防ぐ。
+    func bootstrap() async {
+        await resolveCurrentMemberID()
+        await seedSampleDataIfNeeded()
+        if let cloudKitService {
+            await cloudKitService.bootstrapFamilyZoneIfNeeded()
+        }
+        await memberDirectory.loadAll()
+        isBootstrapped = true
     }
 
     /// 実際の iCloud ユーザーIDが解決できたら、ローカル生成の仮IDから差し替える。
-    func resolveCurrentMemberID() async {
+    private func resolveCurrentMemberID() async {
         guard let cloudKitService else { return }
         guard let recordID = try? await cloudKitService.container.userRecordID() else { return }
         currentMemberID = recordID.recordName
@@ -63,8 +84,11 @@ final class AppEnvironment: ObservableObject {
 
     /// UIテスト（スクリーンショット撮影）でアプリの見た目を確認しやすくするためのサンプルデータ投入。
     /// UIテスト実行時のみ動作し、実アプリ・ユニットテストには一切影響しない。
-    func seedSampleDataIfNeeded() async {
+    private func seedSampleDataIfNeeded() async {
         guard AppEnvironment.isUITesting else { return }
+
+        _ = try? await familyMemberRepository.upsert(FamilyMember(id: currentMemberID, displayName: "あなた"))
+        _ = try? await familyMemberRepository.upsert(FamilyMember(id: Self.familyMemberID, displayName: "お母さん"))
 
         let curry = Recipe(
             title: "鶏肉の甘辛カレー",

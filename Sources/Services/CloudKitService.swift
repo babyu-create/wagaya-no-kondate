@@ -21,6 +21,18 @@ final class CloudKitService {
         _ = try await privateDatabase.save(zone)
     }
 
+    /// アプリ起動時に一度だけ呼ぶ想定のゾーン準備処理。
+    /// すでに誰かの家族に招待されている（Shared DBにFamilyZoneがある）場合は何もしない。
+    /// そうでなければ、自分がオーナーとして家族ゾーンを（まだ無ければ）作成する。
+    /// これを呼ばずに各画面が先にデータへアクセスすると、初回起動時に familyZoneNotFound で失敗する。
+    func bootstrapFamilyZoneIfNeeded() async {
+        if let sharedZones = try? await sharedDatabase.allRecordZones(),
+           sharedZones.contains(where: { $0.zoneID.zoneName == CloudKitService.familyZoneName }) {
+            return
+        }
+        _ = try? await ensureFamilyZoneExists()
+    }
+
     /// 家族ゾーンの CKShare を作成する。まだ共有されていない場合は新規作成し、招待用の UICloudSharingController に渡す。
     func fetchOrCreateFamilyShare() async throws -> CKShare {
         let zone = try await privateDatabase.recordZone(for: familyZoneID)

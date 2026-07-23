@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct RecipeFormView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -17,9 +19,30 @@ struct RecipeFormView: View {
     @State private var newIngredientAmount: String = ""
     @State private var isSaving = false
     @State private var errorMessage: String?
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedImageData: Data?
 
     var body: some View {
         Form {
+            Section("写真") {
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                    if let selectedImageData, let uiImage = UIImage(data: selectedImageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 160)
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Label("写真を選択", systemImage: "photo.badge.plus")
+                    }
+                }
+                .onChange(of: selectedPhotoItem) { _, newItem in
+                    Task {
+                        selectedImageData = try? await newItem?.loadTransferable(type: Data.self)
+                    }
+                }
+            }
+
             Section("基本情報") {
                 TextField("料理名", text: $title)
                 TextField("参考URL", text: $sourceURLString)
@@ -108,7 +131,8 @@ struct RecipeFormView: View {
             costPerServing: Int(costPerServingText),
             genre: genre,
             ingredients: ingredients,
-            createdByMemberID: environment.currentMemberID
+            createdByMemberID: environment.currentMemberID,
+            localImageURL: writeImageToTempFileIfNeeded()
         )
 
         do {
@@ -117,6 +141,17 @@ struct RecipeFormView: View {
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func writeImageToTempFileIfNeeded() -> URL? {
+        guard let selectedImageData else { return nil }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
+        do {
+            try selectedImageData.write(to: url)
+            return url
+        } catch {
+            return nil
         }
     }
 }

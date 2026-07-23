@@ -6,12 +6,17 @@ struct WagayaNoKondateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
-                .environmentObject(environment)
-                .task {
-                    await environment.resolveCurrentMemberID()
-                    await environment.seedSampleDataIfNeeded()
+            Group {
+                if environment.isBootstrapped {
+                    RootTabView()
+                } else {
+                    ProgressView("準備しています…")
                 }
+            }
+            .environmentObject(environment)
+            .task {
+                await environment.bootstrap()
+            }
         }
     }
 }

@@ -4,10 +4,30 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var environment: AppEnvironment
 
+    var body: some View {
+        SettingsContentView(environment: environment)
+    }
+}
+
+private struct SettingsContentView: View {
+    @ObservedObject private var environment: AppEnvironment
+    @ObservedObject private var memberDirectory: MemberDirectory
+
     @State private var share: CKShare?
     @State private var isSharing = false
     @State private var isPreparingShare = false
     @State private var errorMessage: String?
+    @State private var isEditingName = false
+    @State private var editedName = ""
+
+    init(environment: AppEnvironment) {
+        self.environment = environment
+        self.memberDirectory = environment.memberDirectory
+    }
+
+    private var myDisplayName: String {
+        memberDirectory.displayName(for: environment.currentMemberID) ?? "未設定"
+    }
 
     var body: some View {
         List {
@@ -29,6 +49,13 @@ struct SettingsView: View {
             }
 
             Section("このデバイスの情報") {
+                Button {
+                    editedName = memberDirectory.displayName(for: environment.currentMemberID) ?? ""
+                    isEditingName = true
+                } label: {
+                    LabeledContent("あなたの表示名", value: myDisplayName)
+                }
+                .foregroundStyle(.primary)
                 LabeledContent("メンバーID", value: String(environment.currentMemberID.prefix(8)))
             }
 
@@ -43,6 +70,18 @@ struct SettingsView: View {
         .sheet(isPresented: $isSharing) {
             if let share, let cloudKitService = environment.cloudKitService {
                 CloudSharingView(share: share, container: cloudKitService.container)
+            }
+        }
+        .alert("表示名を変更", isPresented: $isEditingName) {
+            TextField("お名前", text: $editedName)
+            Button("キャンセル", role: .cancel) {}
+            Button("保存") {
+                Task {
+                    await memberDirectory.setDisplayName(
+                        editedName.trimmingCharacters(in: .whitespaces),
+                        memberID: environment.currentMemberID
+                    )
+                }
             }
         }
     }
