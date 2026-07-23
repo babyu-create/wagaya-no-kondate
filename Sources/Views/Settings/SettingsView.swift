@@ -41,18 +41,22 @@ struct SettingsView: View {
         }
         .navigationTitle("設定")
         .sheet(isPresented: $isSharing) {
-            if let share {
-                CloudSharingView(share: share, container: environment.cloudKitService.container)
+            if let share, let cloudKitService = environment.cloudKitService {
+                CloudSharingView(share: share, container: cloudKitService.container)
             }
         }
     }
 
     private func prepareAndPresentShare() async {
+        guard let cloudKitService = environment.cloudKitService else {
+            errorMessage = "iCloud機能を利用できません"
+            return
+        }
         isPreparingShare = true
         defer { isPreparingShare = false }
         do {
-            try await environment.cloudKitService.ensureFamilyZoneExists()
-            share = try await environment.cloudKitService.fetchOrCreateFamilyShare()
+            try await cloudKitService.ensureFamilyZoneExists()
+            share = try await cloudKitService.fetchOrCreateFamilyShare()
             isSharing = true
         } catch {
             errorMessage = error.localizedDescription
