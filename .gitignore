@@ -16,3 +16,4 @@ DerivedData/
 
 # Internal company/secretary management (local only, not app source)
 .company/
+.claude/
