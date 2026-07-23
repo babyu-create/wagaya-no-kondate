@@ -80,4 +80,36 @@ final class FridgeMatcherTests: XCTestCase {
 
         XCTAssertTrue(results[0].isFullyAvailable)
     }
+
+    func testNameMatchingIgnoresKatakanaHiraganaDifference() {
+        let recipe = Recipe(
+            title: "肉じゃが",
+            instructions: "煮る",
+            servings: 4,
+            genre: .japanese,
+            ingredients: [Ingredient(displayName: "ジャガイモ", amount: "3個")],
+            createdByMemberID: "member-1"
+        )
+        let fridge = [FridgeItem(displayName: "じゃがいも", updatedByMemberID: "member-1")]
+
+        let results = FridgeMatcher.match(recipes: [recipe], fridgeItems: fridge)
+
+        XCTAssertTrue(results[0].isFullyAvailable)
+    }
+
+    func testNameMatchingIgnoresFullwidthHalfwidthDifference() {
+        let recipe = Recipe(
+            title: "テスト",
+            instructions: "-",
+            servings: 1,
+            genre: .other,
+            ingredients: [Ingredient(displayName: "Ａ牛乳", amount: "1本")],
+            createdByMemberID: "member-1"
+        )
+        let fridge = [FridgeItem(displayName: "A牛乳", updatedByMemberID: "member-1")]
+
+        let results = FridgeMatcher.match(recipes: [recipe], fridgeItems: fridge)
+
+        XCTAssertTrue(results[0].isFullyAvailable)
+    }
 }
