@@ -35,7 +35,7 @@ final class RecipeDetailViewModel: ObservableObject {
         do {
             reviews = try await reviewRepository.fetchAll(recipeID: recipe.id)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -57,7 +57,7 @@ final class RecipeDetailViewModel: ObservableObject {
                 reviews.append(saved)
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 }

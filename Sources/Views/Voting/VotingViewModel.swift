@@ -54,7 +54,7 @@ final class VotingViewModel: ObservableObject {
                 votes = []
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -68,7 +68,7 @@ final class VotingViewModel: ObservableObject {
                 votes.append(vote)
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -89,7 +89,7 @@ final class VotingViewModel: ObservableObject {
             options = created.options
             votes = []
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -102,7 +102,7 @@ final class VotingViewModel: ObservableObject {
             let eligible = ReviewAggregator.recipes(ratedAtLeast: threshold, recipes: recipes, reviews: allReviews)
             await createPoll(type: .topRated, genre: nil, recipeIDs: eligible.map(\.id))
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -119,7 +119,7 @@ final class VotingViewModel: ObservableObject {
             options = []
             votes = []
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 }

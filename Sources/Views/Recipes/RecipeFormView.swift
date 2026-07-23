@@ -171,7 +171,7 @@ struct RecipeFormView: View {
             onSaved(saved)
             dismiss()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 

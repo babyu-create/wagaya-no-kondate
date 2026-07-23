@@ -105,7 +105,7 @@ private struct SettingsContentView: View {
             share = try await cloudKitService.fetchOrCreateFamilyShare()
             isSharing = true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 }

@@ -38,7 +38,7 @@ final class FridgeViewModel: ObservableObject {
             fridgeItems = try await itemsTask
             recipes = try await recipesTask
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -51,7 +51,7 @@ final class FridgeViewModel: ObservableObject {
             )
             fridgeItems.insert(saved, at: 0)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -62,7 +62,7 @@ final class FridgeViewModel: ObservableObject {
                 try await fridgeRepository.delete(id: item.id)
                 fridgeItems.removeAll { $0.id == item.id }
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = AppError.message(for: error)
             }
         }
     }

@@ -46,7 +46,7 @@ final class WeeklyViewModel: ObservableObject {
             recipes = try await recipesTask
             wishes = try await wishesTask
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -63,7 +63,7 @@ final class WeeklyViewModel: ObservableObject {
                 wishes.removeAll { $0.recipeID == recipe.id && $0.memberID == currentMemberID }
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 }

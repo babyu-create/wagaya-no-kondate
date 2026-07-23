@@ -14,6 +14,7 @@ final class AppEnvironment: ObservableObject {
 
     @Published private(set) var currentMemberID: String
     @Published private(set) var isBootstrapped = false
+    @Published private(set) var accountStatus: CKAccountStatus = .available
 
     private static let memberIDDefaultsKey = "local.currentMemberID"
     private static let familyMemberID = "family-member-2"
@@ -65,6 +66,14 @@ final class AppEnvironment: ObservableObject {
     /// これにより、ゾーンが無い状態で各タブが先にデータへアクセスして
     /// familyZoneNotFound エラーになる問題を防ぐ。
     func bootstrap() async {
+        if let cloudKitService {
+            accountStatus = (try? await cloudKitService.container.accountStatus()) ?? .couldNotDetermine
+            guard accountStatus == .available else {
+                isBootstrapped = true
+                return
+            }
+        }
+
         await resolveCurrentMemberID()
         await seedSampleDataIfNeeded()
         if let cloudKitService {

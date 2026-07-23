@@ -8,7 +8,11 @@ struct WagayaNoKondateApp: App {
         WindowGroup {
             Group {
                 if environment.isBootstrapped {
-                    RootTabView()
+                    if environment.accountStatus == .available {
+                        RootTabView()
+                    } else {
+                        AccountIssueView(status: environment.accountStatus)
+                    }
                 } else {
                     ZStack {
                         AppTheme.background.ignoresSafeArea()

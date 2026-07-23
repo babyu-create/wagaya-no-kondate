@@ -22,7 +22,7 @@ final class RecipeListViewModel: ObservableObject {
         do {
             recipes = try await repository.fetchAll()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AppError.message(for: error)
         }
     }
 
@@ -36,7 +36,7 @@ final class RecipeListViewModel: ObservableObject {
                 _ = try await (deleteReviews, deleteWishes)
                 recipes.removeAll { $0.id == recipe.id }
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = AppError.message(for: error)
             }
         }
     }
