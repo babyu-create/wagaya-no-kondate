@@ -20,7 +20,11 @@ private struct RootTabContentView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                RecipeListView(repository: environment.recipeRepository)
+                RecipeListView(
+                    repository: environment.recipeRepository,
+                    reviewRepository: environment.reviewRepository,
+                    weeklyWishRepository: environment.weeklyWishRepository
+                )
             }
             .tabItem {
                 Label("レシピ", systemImage: "fork.knife")

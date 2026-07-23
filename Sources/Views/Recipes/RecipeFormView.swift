@@ -6,21 +6,38 @@ struct RecipeFormView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @Environment(\.dismiss) private var dismiss
 
+    private let existingRecipe: Recipe?
     var onSaved: (Recipe) -> Void
 
-    @State private var title: String = ""
-    @State private var instructions: String = ""
-    @State private var sourceURLString: String = ""
-    @State private var servings: Int = 2
-    @State private var costPerServingText: String = ""
-    @State private var genre: Genre = .japanese
-    @State private var ingredients: [Ingredient] = []
+    @State private var title: String
+    @State private var instructions: String
+    @State private var sourceURLString: String
+    @State private var servings: Int
+    @State private var costPerServingText: String
+    @State private var genre: Genre
+    @State private var ingredients: [Ingredient]
     @State private var newIngredientName: String = ""
     @State private var newIngredientAmount: String = ""
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
+    @State private var existingImageURL: URL?
+
+    init(existingRecipe: Recipe? = nil, onSaved: @escaping (Recipe) -> Void) {
+        self.existingRecipe = existingRecipe
+        self.onSaved = onSaved
+        _title = State(initialValue: existingRecipe?.title ?? "")
+        _instructions = State(initialValue: existingRecipe?.instructions ?? "")
+        _sourceURLString = State(initialValue: existingRecipe?.sourceURL?.absoluteString ?? "")
+        _servings = State(initialValue: existingRecipe?.servings ?? 2)
+        _costPerServingText = State(initialValue: existingRecipe?.costPerServing.map(String.init) ?? "")
+        _genre = State(initialValue: existingRecipe?.genre ?? .japanese)
+        _ingredients = State(initialValue: existingRecipe?.ingredients ?? [])
+        _existingImageURL = State(initialValue: existingRecipe?.localImageURL)
+    }
+
+    private var isEditing: Bool { existingRecipe != nil }
 
     var body: some View {
         Form {
@@ -30,6 +47,10 @@ struct RecipeFormView: View {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFit()
+                            .frame(height: 160)
+                            .frame(maxWidth: .infinity)
+                    } else if let existingImageURL {
+                        RecipeThumbnail(url: existingImageURL, cornerRadius: 8)
                             .frame(height: 160)
                             .frame(maxWidth: .infinity)
                     } else {
@@ -97,14 +118,14 @@ struct RecipeFormView: View {
             }
         }
         .warmScrollBackground()
-        .navigationTitle("レシピを追加")
+        .navigationTitle(isEditing ? "レシピを編集" : "レシピを追加")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("キャンセル") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("保存") {
+                Button(isEditing ? "更新" : "保存") {
                     Task { await save() }
                 }
                 .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
@@ -124,7 +145,15 @@ struct RecipeFormView: View {
         isSaving = true
         defer { isSaving = false }
 
+        let imageURL: URL?
+        if selectedImageData != nil {
+            imageURL = writeImageToTempFileIfNeeded()
+        } else {
+            imageURL = existingImageURL
+        }
+
         let recipe = Recipe(
+            id: existingRecipe?.id ?? UUID().uuidString,
             title: title.trimmingCharacters(in: .whitespaces),
             instructions: instructions,
             sourceURL: URL(string: sourceURLString),
@@ -132,8 +161,9 @@ struct RecipeFormView: View {
             costPerServing: Int(costPerServingText),
             genre: genre,
             ingredients: ingredients,
-            createdByMemberID: environment.currentMemberID,
-            localImageURL: writeImageToTempFileIfNeeded()
+            createdByMemberID: existingRecipe?.createdByMemberID ?? environment.currentMemberID,
+            createdAt: existingRecipe?.createdAt ?? Date(),
+            localImageURL: imageURL
         )
 
         do {

@@ -7,9 +7,13 @@ final class RecipeListViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let repository: RecipeRepository
+    private let reviewRepository: ReviewRepository
+    private let weeklyWishRepository: WeeklyWishRepository
 
-    init(repository: RecipeRepository) {
+    init(repository: RecipeRepository, reviewRepository: ReviewRepository, weeklyWishRepository: WeeklyWishRepository) {
         self.repository = repository
+        self.reviewRepository = reviewRepository
+        self.weeklyWishRepository = weeklyWishRepository
     }
 
     func load() async {
@@ -27,6 +31,9 @@ final class RecipeListViewModel: ObservableObject {
         for recipe in targets {
             do {
                 try await repository.delete(id: recipe.id)
+                async let deleteReviews: () = reviewRepository.deleteAll(recipeID: recipe.id)
+                async let deleteWishes: () = weeklyWishRepository.deleteAll(recipeID: recipe.id)
+                _ = try await (deleteReviews, deleteWishes)
                 recipes.removeAll { $0.id == recipe.id }
             } catch {
                 errorMessage = error.localizedDescription

@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class RecipeDetailViewModel: ObservableObject {
-    let recipe: Recipe
+    @Published var recipe: Recipe
 
     @Published var reviews: [Review] = []
     @Published var isLoading = false
@@ -37,6 +37,10 @@ final class RecipeDetailViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func applyEdit(_ updatedRecipe: Recipe) {
+        recipe = updatedRecipe
     }
 
     func submitRating(_ rating: Int) async {

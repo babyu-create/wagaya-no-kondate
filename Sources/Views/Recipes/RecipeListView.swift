@@ -4,8 +4,14 @@ struct RecipeListView: View {
     @StateObject private var viewModel: RecipeListViewModel
     @State private var isPresentingForm = false
 
-    init(repository: RecipeRepository) {
-        _viewModel = StateObject(wrappedValue: RecipeListViewModel(repository: repository))
+    init(repository: RecipeRepository, reviewRepository: ReviewRepository, weeklyWishRepository: WeeklyWishRepository) {
+        _viewModel = StateObject(
+            wrappedValue: RecipeListViewModel(
+                repository: repository,
+                reviewRepository: reviewRepository,
+                weeklyWishRepository: weeklyWishRepository
+            )
+        )
     }
 
     var body: some View {

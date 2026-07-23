@@ -17,6 +17,7 @@ struct RecipeDetailView: View {
 private struct RecipeDetailContentView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
     @ObservedObject private var memberDirectory: MemberDirectory
+    @State private var isPresentingEditForm = false
 
     init(
         recipe: Recipe,
@@ -92,6 +93,20 @@ private struct RecipeDetailContentView: View {
         .background(AppTheme.background)
         .navigationTitle(viewModel.recipe.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("編集") {
+                    isPresentingEditForm = true
+                }
+            }
+        }
+        .sheet(isPresented: $isPresentingEditForm) {
+            NavigationStack {
+                RecipeFormView(existingRecipe: viewModel.recipe) { updated in
+                    viewModel.applyEdit(updated)
+                }
+            }
+        }
         .task {
             await viewModel.load()
         }

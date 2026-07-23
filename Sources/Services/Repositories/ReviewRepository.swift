@@ -4,6 +4,8 @@ import Foundation
 protocol ReviewRepository {
     func fetchAll(recipeID: String) async throws -> [Review]
     func upsert(recipeID: String, memberID: String, rating: Int, comment: String?) async throws -> Review
+    /// レシピが削除された際に、そのレシピに紐づくレビューをすべて削除する。
+    func deleteAll(recipeID: String) async throws
 }
 
 final class InMemoryReviewRepository: ReviewRepository {
@@ -24,6 +26,10 @@ final class InMemoryReviewRepository: ReviewRepository {
         let review = Review(id: id, recipeID: recipeID, memberID: memberID, rating: rating, comment: comment)
         storage[id] = review
         return review
+    }
+
+    func deleteAll(recipeID: String) async throws {
+        storage = storage.filter { $0.value.recipeID != recipeID }
     }
 }
 
@@ -55,5 +61,15 @@ final class CloudKitReviewRepository: ReviewRepository {
             throw CloudKitServiceError.familyZoneNotFound
         }
         return savedReview
+    }
+
+    func deleteAll(recipeID: String) async throws {
+        let reviews = try await fetchAll(recipeID: recipeID)
+        guard !reviews.isEmpty else { return }
+        let target = try await service.resolveWritableTarget()
+        for review in reviews {
+            let recordID = CKRecord.ID(recordName: review.id, zoneID: target.zoneID)
+            _ = try? await target.database.deleteRecord(withID: recordID)
+        }
     }
 }
