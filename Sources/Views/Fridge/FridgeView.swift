@@ -48,6 +48,12 @@ private struct FridgeContentView: View {
                     }
                     .disabled(newItemName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+
+                SuggestionChips(
+                    suggestions: IngredientSuggester.suggestions(for: newItemName, knownNames: viewModel.knownIngredientNames)
+                ) { suggestion in
+                    newItemName = suggestion
+                }
             }
 
             if !viewModel.makeableRecipes.isEmpty {

@@ -23,6 +23,7 @@ struct RecipeFormView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
     @State private var existingImageURL: URL?
+    @State private var knownIngredientNames: [String] = []
 
     init(existingRecipe: Recipe? = nil, onSaved: @escaping (Recipe) -> Void) {
         self.existingRecipe = existingRecipe
@@ -103,6 +104,12 @@ struct RecipeFormView: View {
                     }
                     .disabled(newIngredientName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+
+                SuggestionChips(
+                    suggestions: IngredientSuggester.suggestions(for: newIngredientName, knownNames: knownIngredientNames)
+                ) { suggestion in
+                    newIngredientName = suggestion
+                }
             }
 
             Section("作り方") {
@@ -131,6 +138,23 @@ struct RecipeFormView: View {
                 .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
             }
         }
+        .task {
+            await loadKnownIngredientNames()
+        }
+    }
+
+    private func loadKnownIngredientNames() async {
+        guard let allRecipes = try? await environment.recipeRepository.fetchAll() else { return }
+        var seen = Set<String>()
+        var names: [String] = []
+        for recipe in allRecipes {
+            for ingredient in recipe.ingredients {
+                guard !seen.contains(ingredient.normalizedName) else { continue }
+                seen.insert(ingredient.normalizedName)
+                names.append(ingredient.displayName)
+            }
+        }
+        knownIngredientNames = names
     }
 
     private func addIngredient() {
