@@ -6,6 +6,7 @@ final class AppEnvironment: ObservableObject {
     let cloudKitService: CloudKitService
     let recipeRepository: RecipeRepository
     let reviewRepository: ReviewRepository
+    let fridgeItemRepository: FridgeItemRepository
 
     @Published private(set) var currentMemberID: String
 
@@ -15,6 +16,7 @@ final class AppEnvironment: ObservableObject {
         self.cloudKitService = cloudKitService
         self.recipeRepository = CloudKitRecipeRepository(service: cloudKitService)
         self.reviewRepository = CloudKitReviewRepository(service: cloudKitService)
+        self.fridgeItemRepository = CloudKitFridgeItemRepository(service: cloudKitService)
         self.currentMemberID = AppEnvironment.loadLocalMemberID()
     }
 

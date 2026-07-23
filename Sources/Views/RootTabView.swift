@@ -13,8 +13,7 @@ struct RootTabView: View {
             }
 
             NavigationStack {
-                Text("冷蔵庫")
-                    .navigationTitle("冷蔵庫")
+                FridgeView()
             }
             .tabItem {
                 Label("冷蔵庫", systemImage: "refrigerator")
