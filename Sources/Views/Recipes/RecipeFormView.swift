@@ -145,15 +145,17 @@ struct RecipeFormView: View {
         isSaving = true
         defer { isSaving = false }
 
+        let recipeID = existingRecipe?.id ?? UUID().uuidString
+
         let imageURL: URL?
-        if selectedImageData != nil {
-            imageURL = writeImageToTempFileIfNeeded()
+        if let selectedImageData {
+            imageURL = ImageStore.save(imageData: selectedImageData, recipeID: recipeID)
         } else {
             imageURL = existingImageURL
         }
 
         let recipe = Recipe(
-            id: existingRecipe?.id ?? UUID().uuidString,
+            id: recipeID,
             title: title.trimmingCharacters(in: .whitespaces),
             instructions: instructions,
             sourceURL: URL(string: sourceURLString),
@@ -172,17 +174,6 @@ struct RecipeFormView: View {
             dismiss()
         } catch {
             errorMessage = AppError.message(for: error)
-        }
-    }
-
-    private func writeImageToTempFileIfNeeded() -> URL? {
-        guard let selectedImageData else { return nil }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
-        do {
-            try selectedImageData.write(to: url)
-            return url
-        } catch {
-            return nil
         }
     }
 }
