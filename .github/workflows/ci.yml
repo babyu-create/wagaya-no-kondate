@@ -55,6 +55,26 @@ jobs:
             -project WagayaNoKondate.xcodeproj \
             -scheme WagayaNoKondate \
             -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.device_id }}" \
+            -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | xcbeautify
+
+      - name: Install xcparse
+        if: always()
+        run: brew install chargepoint/xcparse/xcparse
+
+      - name: Extract screenshots from test results
+        if: always()
+        run: |
+          mkdir -p screenshots
+          xcparse screenshots TestResults.xcresult screenshots/ --test || echo "No screenshots found"
+          ls -la screenshots/ || true
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: warn

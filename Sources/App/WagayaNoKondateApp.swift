@@ -10,6 +10,7 @@ struct WagayaNoKondateApp: App {
                 .environmentObject(environment)
                 .task {
                     await environment.resolveCurrentMemberID()
+                    await environment.seedSampleDataIfNeeded()
                 }
         }
     }

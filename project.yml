@@ -54,15 +54,30 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: true
 
+  WagayaNoKondateUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: UITests/WagayaNoKondateUITests
+    dependencies:
+      - target: WagayaNoKondate
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        TEST_TARGET_NAME: WagayaNoKondate
+
 schemes:
   WagayaNoKondate:
     build:
       targets:
         WagayaNoKondate: all
         WagayaNoKondateTests: [test]
+        WagayaNoKondateUITests: [test]
     test:
       config: Debug
       targets:
         - WagayaNoKondateTests
+        - WagayaNoKondateUITests
     run:
       config: Debug
