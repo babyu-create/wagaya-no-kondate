@@ -27,8 +27,7 @@ struct RootTabView: View {
             }
 
             NavigationStack {
-                Text("今週")
-                    .navigationTitle("今週")
+                WeeklyView()
             }
             .tabItem {
                 Label("今週", systemImage: "calendar")
