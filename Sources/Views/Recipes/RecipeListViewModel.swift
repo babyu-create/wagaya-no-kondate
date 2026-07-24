@@ -27,7 +27,12 @@ final class RecipeListViewModel: ObservableObject {
     }
 
     func delete(at offsets: IndexSet) async {
-        let targets = offsets.map { recipes[$0] }
+        await delete(offsets.map { recipes[$0] })
+    }
+
+    /// 指定したレシピ群を削除する。検索で絞り込んだ一覧からでも、
+    /// インデックスではなくレシピ自体を渡すことで正しい対象を消せる。
+    func delete(_ targets: [Recipe]) async {
         for recipe in targets {
             do {
                 try await repository.delete(id: recipe.id)

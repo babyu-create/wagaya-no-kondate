@@ -86,6 +86,7 @@ private struct VotingContentView: View {
                 ForEach(viewModel.results) { result in
                     if let recipe = viewModel.recipe(for: result.optionID) {
                         Button {
+                            Haptics.lightTap()
                             Task { await viewModel.castVote(optionID: result.optionID) }
                         } label: {
                             HStack {

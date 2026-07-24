@@ -14,6 +14,8 @@ struct StarRatingView: View {
                     .foregroundStyle(color)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(maxRating)段階中 \(String(format: "%.1f", rating))")
     }
 
     private func symbolName(for index: Int) -> String {
@@ -37,14 +39,21 @@ struct StarRatingPicker: View {
     var body: some View {
         HStack(spacing: 6) {
             ForEach(1...maxRating, id: \.self) { index in
-                Image(systemName: index <= rating ? "star.fill" : "star")
-                    .font(.system(size: size))
-                    .foregroundStyle(color)
-                    .onTapGesture {
-                        rating = index
-                    }
+                Button {
+                    rating = index
+                    Haptics.lightTap()
+                } label: {
+                    Image(systemName: index <= rating ? "star.fill" : "star")
+                        .font(.system(size: size))
+                        .foregroundStyle(color)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(index)つ星")
+                .accessibilityAddTraits(index == rating ? [.isSelected] : [])
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("評価")
     }
 }
 

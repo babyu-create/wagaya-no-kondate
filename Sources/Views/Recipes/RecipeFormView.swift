@@ -73,6 +73,12 @@ struct RecipeFormView: View {
                 Stepper("何人前: \(servings)", value: $servings, in: 1...10)
                 TextField("1人前あたりの金額（円）", text: $costPerServingText)
                     .keyboardType(.numberPad)
+                    .onChange(of: costPerServingText) { _, newValue in
+                        let filtered = InputSanitizer.digitsOnly(newValue)
+                        if filtered != newValue {
+                            costPerServingText = filtered
+                        }
+                    }
                 Picker("ジャンル", selection: $genre) {
                     ForEach(Genre.allCases) { genreOption in
                         Text(genreOption.rawValue).tag(genreOption)
@@ -113,8 +119,17 @@ struct RecipeFormView: View {
             }
 
             Section("作り方") {
-                TextEditor(text: $instructions)
-                    .frame(minHeight: 120)
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $instructions)
+                        .frame(minHeight: 120)
+                    if instructions.isEmpty {
+                        Text("例:\n1. 野菜を食べやすい大きさに切る\n2. フライパンで炒める\n3. 調味料で味を整える")
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
+                    }
+                }
             }
 
             if let errorMessage {
@@ -173,7 +188,7 @@ struct RecipeFormView: View {
             id: recipeID,
             title: title.trimmingCharacters(in: .whitespaces),
             instructions: instructions,
-            sourceURL: URL(string: sourceURLString),
+            sourceURL: URLNormalizer.normalized(from: sourceURLString),
             servings: servings,
             costPerServing: Int(costPerServingText),
             genre: genre,

@@ -71,6 +71,7 @@ private struct WeeklyContentView: View {
 
     private func weeklyRow(_ recipe: Recipe) -> some View {
         Button {
+            Haptics.lightTap()
             Task { await viewModel.toggleWish(for: recipe) }
         } label: {
             HStack {
