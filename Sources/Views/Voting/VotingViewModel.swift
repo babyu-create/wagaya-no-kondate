@@ -72,7 +72,7 @@ final class VotingViewModel: ObservableObject {
         }
     }
 
-    func createPoll(type: PollType, genre: Genre?, recipeIDs: [String]) async {
+    func createPoll(type: PollType, genre: Genre?, recipeIDs: [String], deadline: Date? = nil) async {
         guard !recipeIDs.isEmpty else {
             errorMessage = "候補となるレシピがありません"
             return
@@ -81,7 +81,7 @@ final class VotingViewModel: ObservableObject {
             let created = try await pollRepository.createPoll(
                 type: type,
                 genre: genre,
-                deadline: nil,
+                deadline: deadline,
                 recipeIDs: recipeIDs,
                 createdByMemberID: currentMemberID
             )
@@ -93,22 +93,22 @@ final class VotingViewModel: ObservableObject {
         }
     }
 
-    func startTopRatedPoll(threshold: Int = 4) async {
+    func startTopRatedPoll(threshold: Int = 4, deadline: Date? = nil) async {
         do {
             var allReviews: [Review] = []
             for recipe in recipes {
                 allReviews.append(contentsOf: try await reviewRepository.fetchAll(recipeID: recipe.id))
             }
             let eligible = ReviewAggregator.recipes(ratedAtLeast: threshold, recipes: recipes, reviews: allReviews)
-            await createPoll(type: .topRated, genre: nil, recipeIDs: eligible.map(\.id))
+            await createPoll(type: .topRated, genre: nil, recipeIDs: eligible.map(\.id), deadline: deadline)
         } catch {
             errorMessage = AppError.message(for: error)
         }
     }
 
-    func startGenrePoll(genre: Genre) async {
+    func startGenrePoll(genre: Genre, deadline: Date? = nil) async {
         let matching = recipes.filter { $0.genre == genre }
-        await createPoll(type: .byGenre, genre: genre, recipeIDs: matching.map(\.id))
+        await createPoll(type: .byGenre, genre: genre, recipeIDs: matching.map(\.id), deadline: deadline)
     }
 
     func closeCurrentPoll() async {

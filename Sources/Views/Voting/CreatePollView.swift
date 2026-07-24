@@ -7,6 +7,8 @@ struct CreatePollView: View {
     @State private var selectedType: PollType = .curated
     @State private var selectedRecipeIDs: Set<String> = []
     @State private var selectedGenre: Genre = .japanese
+    @State private var hasDeadline = false
+    @State private var deadline = Date().addingTimeInterval(60 * 60)
 
     var body: some View {
         Form {
@@ -56,6 +58,13 @@ struct CreatePollView: View {
                     }
                 }
             }
+
+            Section("締め切り") {
+                Toggle("締め切りを設定する", isOn: $hasDeadline)
+                if hasDeadline {
+                    DatePicker("締め切り日時", selection: $deadline, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                }
+            }
         }
         .warmScrollBackground()
         .navigationTitle("投票を作成")
@@ -84,13 +93,19 @@ struct CreatePollView: View {
     }
 
     private func create() async {
+        let effectiveDeadline = hasDeadline ? deadline : nil
         switch selectedType {
         case .curated:
-            await viewModel.createPoll(type: .curated, genre: nil, recipeIDs: Array(selectedRecipeIDs))
+            await viewModel.createPoll(
+                type: .curated,
+                genre: nil,
+                recipeIDs: Array(selectedRecipeIDs),
+                deadline: effectiveDeadline
+            )
         case .topRated:
-            await viewModel.startTopRatedPoll()
+            await viewModel.startTopRatedPoll(deadline: effectiveDeadline)
         case .byGenre:
-            await viewModel.startGenrePoll(genre: selectedGenre)
+            await viewModel.startGenrePoll(genre: selectedGenre, deadline: effectiveDeadline)
         }
     }
 }

@@ -43,6 +43,44 @@ final class RecipeDetailViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.reviews.count, 1)
     }
 
+    func testSubmitCommentAttachesCommentWithoutChangingRating() async {
+        let recipe = makeRecipe()
+        let viewModel = RecipeDetailViewModel(recipe: recipe, reviewRepository: InMemoryReviewRepository(), currentMemberID: "m1")
+        await viewModel.load()
+        await viewModel.submitRating(4)
+
+        await viewModel.submitComment("また作りたい！")
+
+        XCTAssertEqual(viewModel.myRating, 4)
+        XCTAssertEqual(viewModel.myComment, "また作りたい！")
+        XCTAssertEqual(viewModel.reviews.count, 1)
+    }
+
+    func testSubmitRatingPreservesExistingComment() async {
+        let recipe = makeRecipe()
+        let viewModel = RecipeDetailViewModel(recipe: recipe, reviewRepository: InMemoryReviewRepository(), currentMemberID: "m1")
+        await viewModel.load()
+        await viewModel.submitRating(3)
+        await viewModel.submitComment("うまい")
+
+        await viewModel.submitRating(5)
+
+        XCTAssertEqual(viewModel.myRating, 5)
+        XCTAssertEqual(viewModel.myComment, "うまい")
+    }
+
+    func testSubmitCommentWithBlankTextClearsComment() async {
+        let recipe = makeRecipe()
+        let viewModel = RecipeDetailViewModel(recipe: recipe, reviewRepository: InMemoryReviewRepository(), currentMemberID: "m1")
+        await viewModel.load()
+        await viewModel.submitRating(4)
+        await viewModel.submitComment("最高")
+
+        await viewModel.submitComment("   ")
+
+        XCTAssertEqual(viewModel.myComment, "")
+    }
+
     func testApplyEditUpdatesRecipe() async {
         let viewModel = RecipeDetailViewModel(recipe: makeRecipe(), reviewRepository: InMemoryReviewRepository(), currentMemberID: "m1")
 

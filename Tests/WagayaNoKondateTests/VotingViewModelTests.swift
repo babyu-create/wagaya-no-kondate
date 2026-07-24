@@ -38,6 +38,20 @@ final class VotingViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.options.count, 1)
     }
 
+    func testCreatePollWithDeadlinePropagatesToPoll() async throws {
+        let recipeRepository = InMemoryRecipeRepository()
+        let recipe = try await recipeRepository.save(
+            Recipe(title: "カレー", instructions: "-", servings: 2, genre: .other, createdByMemberID: "m1")
+        )
+        let deadline = Date().addingTimeInterval(3600)
+
+        let viewModel = makeViewModel(recipeRepository: recipeRepository)
+        await viewModel.load()
+        await viewModel.createPoll(type: .curated, genre: nil, recipeIDs: [recipe.id], deadline: deadline)
+
+        XCTAssertEqual(viewModel.poll?.deadline, deadline)
+    }
+
     func testCreatePollWithNoRecipesSetsErrorMessage() async {
         let viewModel = makeViewModel()
         await viewModel.createPoll(type: .curated, genre: nil, recipeIDs: [])

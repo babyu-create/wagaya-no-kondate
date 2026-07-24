@@ -83,6 +83,15 @@ private struct VotingContentView: View {
 
     private func activePollView(poll: Poll) -> some View {
         List {
+            if let deadline = poll.deadline {
+                Section {
+                    Label(deadlineLabel(deadline), systemImage: "clock")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .warmCardRow()
+                }
+            }
+
             Section {
                 ForEach(viewModel.results) { result in
                     if let recipe = viewModel.recipe(for: result.optionID) {
@@ -122,6 +131,13 @@ private struct VotingContentView: View {
         }
         .listStyle(.plain)
         .warmScrollBackground()
+    }
+
+    private func deadlineLabel(_ deadline: Date) -> String {
+        if deadline < Date() {
+            return "締め切りを過ぎています（\(deadline.formatted(date: .abbreviated, time: .shortened))）"
+        }
+        return "締め切り: \(deadline.formatted(date: .abbreviated, time: .shortened))"
     }
 
     private func pollTypeLabel(_ poll: Poll) -> String {

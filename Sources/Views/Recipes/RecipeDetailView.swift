@@ -18,6 +18,7 @@ private struct RecipeDetailContentView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
     @ObservedObject private var memberDirectory: MemberDirectory
     @State private var isPresentingEditForm = false
+    @State private var commentDraft = ""
 
     init(
         recipe: Recipe,
@@ -109,6 +110,7 @@ private struct RecipeDetailContentView: View {
         }
         .task {
             await viewModel.load()
+            commentDraft = viewModel.myComment
         }
         .alert(
             "エラー",
@@ -152,18 +154,41 @@ private struct RecipeDetailContentView: View {
                         }
                     )
                 )
+
+                if viewModel.myRating > 0 {
+                    HStack {
+                        TextField("ひとことコメント（任意）", text: $commentDraft)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.caption)
+                        if commentDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                            != viewModel.myComment.trimmingCharacters(in: .whitespacesAndNewlines) {
+                            Button("保存") {
+                                Task { await viewModel.submitComment(commentDraft) }
+                            }
+                            .font(.caption)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
             }
             .padding(.top, 4)
 
             if !viewModel.otherReviews.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(viewModel.otherReviews) { review in
-                        HStack {
-                            Text("\(memberDirectory.avatarEmoji(for: review.memberID) ?? "🙂") \(memberDirectory.displayName(for: review.memberID) ?? "家族の1人")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            StarRatingView(rating: Double(review.rating), size: 12)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("\(memberDirectory.avatarEmoji(for: review.memberID) ?? "🙂") \(memberDirectory.displayName(for: review.memberID) ?? "家族の1人")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                StarRatingView(rating: Double(review.rating), size: 12)
+                            }
+                            if let comment = review.comment, !comment.isEmpty {
+                                Text(comment)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }

@@ -21,8 +21,16 @@ final class RecipeDetailViewModel: ObservableObject {
         ReviewAggregator.averageRating(for: recipe.id, reviews: reviews)
     }
 
+    private var myReview: Review? {
+        reviews.first { $0.memberID == currentMemberID }
+    }
+
     var myRating: Int {
-        reviews.first { $0.memberID == currentMemberID }?.rating ?? 0
+        myReview?.rating ?? 0
+    }
+
+    var myComment: String {
+        myReview?.comment ?? ""
     }
 
     var otherReviews: [Review] {
@@ -44,12 +52,21 @@ final class RecipeDetailViewModel: ObservableObject {
     }
 
     func submitRating(_ rating: Int) async {
+        await submitReview(rating: rating, comment: myReview?.comment)
+    }
+
+    func submitComment(_ comment: String) async {
+        let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
+        await submitReview(rating: myRating, comment: trimmed.isEmpty ? nil : trimmed)
+    }
+
+    private func submitReview(rating: Int, comment: String?) async {
         do {
             let saved = try await reviewRepository.upsert(
                 recipeID: recipe.id,
                 memberID: currentMemberID,
                 rating: rating,
-                comment: nil
+                comment: comment
             )
             if let index = reviews.firstIndex(where: { $0.id == saved.id }) {
                 reviews[index] = saved
