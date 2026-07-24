@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     let recipe: Recipe
+    /// 編集内容を呼び出し元（一覧）へ伝えるためのコールバック。
+    var onRecipeChanged: (Recipe) -> Void = { _ in }
     @EnvironmentObject private var environment: AppEnvironment
 
     var body: some View {
@@ -9,7 +11,8 @@ struct RecipeDetailView: View {
             recipe: recipe,
             reviewRepository: environment.reviewRepository,
             currentMemberID: environment.currentMemberID,
-            memberDirectory: environment.memberDirectory
+            memberDirectory: environment.memberDirectory,
+            onRecipeChanged: onRecipeChanged
         )
     }
 }
@@ -17,6 +20,7 @@ struct RecipeDetailView: View {
 private struct RecipeDetailContentView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
     @ObservedObject private var memberDirectory: MemberDirectory
+    private let onRecipeChanged: (Recipe) -> Void
     @State private var isPresentingEditForm = false
     @State private var commentDraft = ""
 
@@ -24,7 +28,8 @@ private struct RecipeDetailContentView: View {
         recipe: Recipe,
         reviewRepository: ReviewRepository,
         currentMemberID: String,
-        memberDirectory: MemberDirectory
+        memberDirectory: MemberDirectory,
+        onRecipeChanged: @escaping (Recipe) -> Void
     ) {
         _viewModel = StateObject(
             wrappedValue: RecipeDetailViewModel(
@@ -34,6 +39,7 @@ private struct RecipeDetailContentView: View {
             )
         )
         self.memberDirectory = memberDirectory
+        self.onRecipeChanged = onRecipeChanged
     }
 
     var body: some View {
@@ -105,6 +111,7 @@ private struct RecipeDetailContentView: View {
             NavigationStack {
                 RecipeFormView(existingRecipe: viewModel.recipe) { updated in
                     viewModel.applyEdit(updated)
+                    onRecipeChanged(updated)
                 }
             }
         }

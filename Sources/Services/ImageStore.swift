@@ -16,6 +16,18 @@ enum ImageStore {
         return dir
     }
 
+    /// recipeIDに対応する保存先URL（存在有無を問わない）。
+    static func imageURL(for recipeID: String) -> URL {
+        directory.appendingPathComponent("\(recipeID).jpg")
+    }
+
+    /// レシピ削除時に、対応する画像ファイルを永続領域から取り除く。
+    /// これを呼ばないと削除済みレシピの写真がディスクに残り続ける。
+    static func delete(recipeID: String) {
+        let url = imageURL(for: recipeID)
+        try? FileManager.default.removeItem(at: url)
+    }
+
     /// 画像データをリサイズ・JPEG圧縮して保存し、保存先のURLを返す。
     /// 同じrecipeIDで再保存すると上書きされ、編集のたびにファイルが増え続けることはない。
     static func save(imageData: Data, recipeID: String) -> URL? {
@@ -23,7 +35,7 @@ enum ImageStore {
         let resized = resized(image, maxDimension: maxDimension)
         guard let jpegData = resized.jpegData(compressionQuality: compressionQuality) else { return nil }
 
-        let url = directory.appendingPathComponent("\(recipeID).jpg")
+        let url = imageURL(for: recipeID)
         do {
             try jpegData.write(to: url, options: .atomic)
             return url

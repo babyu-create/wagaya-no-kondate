@@ -62,4 +62,22 @@ final class ImageStoreTests: XCTestCase {
 
         try? FileManager.default.removeItem(at: secondURL)
     }
+
+    func testDeleteRemovesSavedImageFile() throws {
+        let recipeID = "delete-test-\(UUID().uuidString)"
+        let image = makeImage(width: 400, height: 300)
+        let data = try XCTUnwrap(image.pngData())
+
+        let url = try XCTUnwrap(ImageStore.save(imageData: data, recipeID: recipeID))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+
+        ImageStore.delete(recipeID: recipeID)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func testDeleteForNonexistentImageDoesNotThrow() {
+        // ファイルが無くても例外を投げず、静かに何もしない。
+        ImageStore.delete(recipeID: "never-saved-\(UUID().uuidString)")
+    }
 }

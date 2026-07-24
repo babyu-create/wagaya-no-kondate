@@ -34,6 +34,8 @@ final class RecipeListViewModel: ObservableObject {
                 async let deleteReviews: () = reviewRepository.deleteAll(recipeID: recipe.id)
                 async let deleteWishes: () = weeklyWishRepository.deleteAll(recipeID: recipe.id)
                 _ = try await (deleteReviews, deleteWishes)
+                // レシピ本体・関連データを消したら、残った写真ファイルも取り除く。
+                ImageStore.delete(recipeID: recipe.id)
                 recipes.removeAll { $0.id == recipe.id }
             } catch {
                 errorMessage = AppError.message(for: error)
@@ -43,5 +45,12 @@ final class RecipeListViewModel: ObservableObject {
 
     func insert(_ recipe: Recipe) {
         recipes.insert(recipe, at: 0)
+    }
+
+    /// 詳細画面で編集されたレシピを一覧にも反映する。
+    /// これがないと、編集して一覧に戻ったとき古いタイトル・写真のままになる。
+    func update(_ recipe: Recipe) {
+        guard let index = recipes.firstIndex(where: { $0.id == recipe.id }) else { return }
+        recipes[index] = recipe
     }
 }

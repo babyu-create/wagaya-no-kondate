@@ -43,7 +43,9 @@ struct RecipeListView: View {
         .background(AppTheme.background)
         .navigationTitle("レシピ")
         .navigationDestination(for: Recipe.self) { recipe in
-            RecipeDetailView(recipe: recipe)
+            RecipeDetailView(recipe: recipe) { updated in
+                viewModel.update(updated)
+            }
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

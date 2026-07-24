@@ -31,6 +31,40 @@ final class RecipeListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.recipes.first?.title, "新規")
     }
 
+    func testUpdateReplacesMatchingRecipeInPlace() async throws {
+        let recipeRepository = InMemoryRecipeRepository()
+        let saved = try await recipeRepository.save(
+            Recipe(id: "r1", title: "カレー", instructions: "-", servings: 2, genre: .other, createdByMemberID: "m1")
+        )
+        let viewModel = RecipeListViewModel(
+            repository: recipeRepository,
+            reviewRepository: InMemoryReviewRepository(),
+            weeklyWishRepository: InMemoryWeeklyWishRepository()
+        )
+        await viewModel.load()
+
+        var edited = saved
+        edited.title = "スパイスカレー"
+        viewModel.update(edited)
+
+        XCTAssertEqual(viewModel.recipes.count, 1)
+        XCTAssertEqual(viewModel.recipes.first?.title, "スパイスカレー")
+    }
+
+    func testUpdateIgnoresRecipeNotInList() {
+        let viewModel = RecipeListViewModel(
+            repository: InMemoryRecipeRepository(),
+            reviewRepository: InMemoryReviewRepository(),
+            weeklyWishRepository: InMemoryWeeklyWishRepository()
+        )
+        viewModel.insert(Recipe(id: "r1", title: "既存", instructions: "-", servings: 2, genre: .other, createdByMemberID: "m1"))
+
+        viewModel.update(Recipe(id: "r2", title: "無関係", instructions: "-", servings: 2, genre: .other, createdByMemberID: "m1"))
+
+        XCTAssertEqual(viewModel.recipes.count, 1)
+        XCTAssertEqual(viewModel.recipes.first?.title, "既存")
+    }
+
     func testDeleteRemovesRecipeAndCascadesReviewsAndWishes() async throws {
         let recipeRepository = InMemoryRecipeRepository()
         let reviewRepository = InMemoryReviewRepository()
