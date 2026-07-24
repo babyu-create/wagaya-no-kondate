@@ -159,7 +159,7 @@ private struct RecipeDetailContentView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(viewModel.otherReviews) { review in
                         HStack {
-                            Text(memberDirectory.displayName(for: review.memberID) ?? "家族の1人")
+                            Text("\(memberDirectory.avatarEmoji(for: review.memberID) ?? "🙂") \(memberDirectory.displayName(for: review.memberID) ?? "家族の1人")")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()

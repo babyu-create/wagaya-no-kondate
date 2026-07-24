@@ -19,6 +19,7 @@ private struct SettingsContentView: View {
     @State private var errorMessage: String?
     @State private var isEditingName = false
     @State private var editedName = ""
+    @State private var isPickingEmoji = false
 
     init(environment: AppEnvironment) {
         self.environment = environment
@@ -27,6 +28,10 @@ private struct SettingsContentView: View {
 
     private var myDisplayName: String {
         memberDirectory.displayName(for: environment.currentMemberID) ?? "未設定"
+    }
+
+    private var myAvatarEmoji: String {
+        memberDirectory.avatarEmoji(for: environment.currentMemberID) ?? "🙂"
     }
 
     var body: some View {
@@ -60,8 +65,35 @@ private struct SettingsContentView: View {
                 }
                 .foregroundStyle(.primary)
                 .warmCardRow()
+                Button {
+                    isPickingEmoji = true
+                } label: {
+                    LabeledContent("あなたのアイコン") {
+                        Text(myAvatarEmoji).font(.title3)
+                    }
+                }
+                .foregroundStyle(.primary)
+                .warmCardRow()
                 LabeledContent("メンバーID", value: String(environment.currentMemberID.prefix(8)))
                     .warmCardRow()
+            }
+
+            if memberDirectory.allMembers.count > 1 {
+                Section("家族のメンバー") {
+                    ForEach(memberDirectory.allMembers) { member in
+                        HStack {
+                            Text(member.avatarEmoji).font(.title3)
+                            Text(member.displayName)
+                            if member.id == environment.currentMemberID {
+                                Spacer()
+                                Text("あなた")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .warmCardRow()
+                    }
+                }
             }
 
             if let errorMessage {
@@ -77,6 +109,13 @@ private struct SettingsContentView: View {
         .sheet(isPresented: $isSharing) {
             if let share, let cloudKitService = environment.cloudKitService {
                 CloudSharingView(share: share, container: cloudKitService.container)
+            }
+        }
+        .sheet(isPresented: $isPickingEmoji) {
+            EmojiPickerSheet(selected: myAvatarEmoji) { emoji in
+                Task {
+                    await memberDirectory.setAvatarEmoji(emoji, memberID: environment.currentMemberID)
+                }
             }
         }
         .alert("表示名を変更", isPresented: $isEditingName) {
