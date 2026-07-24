@@ -114,7 +114,10 @@ private struct SettingsContentView: View {
         .sheet(isPresented: $isPickingEmoji) {
             EmojiPickerSheet(selected: myAvatarEmoji) { emoji in
                 Task {
-                    await memberDirectory.setAvatarEmoji(emoji, memberID: environment.currentMemberID)
+                    let ok = await memberDirectory.setAvatarEmoji(emoji, memberID: environment.currentMemberID)
+                    if !ok {
+                        errorMessage = "アイコンを保存できませんでした。通信環境を確認してください。"
+                    }
                 }
             }
         }
@@ -122,11 +125,13 @@ private struct SettingsContentView: View {
             TextField("お名前", text: $editedName)
             Button("キャンセル", role: .cancel) {}
             Button("保存") {
+                let trimmed = editedName.trimmingCharacters(in: .whitespaces)
+                guard !trimmed.isEmpty else { return }
                 Task {
-                    await memberDirectory.setDisplayName(
-                        editedName.trimmingCharacters(in: .whitespaces),
-                        memberID: environment.currentMemberID
-                    )
+                    let ok = await memberDirectory.setDisplayName(trimmed, memberID: environment.currentMemberID)
+                    if !ok {
+                        errorMessage = "表示名を保存できませんでした。通信環境を確認してください。"
+                    }
                 }
             }
         }

@@ -1,6 +1,13 @@
 import XCTest
 @testable import WagayaNoKondate
 
+/// upsertが必ず失敗するリポジトリ。保存失敗時にMemberDirectoryがfalseを返すことの確認に使う。
+private final class FailingFamilyMemberRepository: FamilyMemberRepository {
+    struct SaveError: Error {}
+    func fetchAll() async throws -> [FamilyMember] { [] }
+    func upsert(_ member: FamilyMember) async throws -> FamilyMember { throw SaveError() }
+}
+
 @MainActor
 final class MemberDirectoryTests: XCTestCase {
     func testDisplayNameIsNilBeforeLoading() {
@@ -77,6 +84,15 @@ final class MemberDirectoryTests: XCTestCase {
 
         XCTAssertEqual(directory.displayName(for: "member-1"), "パパ")
         XCTAssertEqual(directory.avatarEmoji(for: "member-1"), "😎")
+    }
+
+    func testSetDisplayNameReturnsFalseWhenRepositoryFails() async {
+        let directory = MemberDirectory(repository: FailingFamilyMemberRepository())
+
+        let success = await directory.setDisplayName("たろう", memberID: "member-1")
+
+        XCTAssertFalse(success)
+        XCTAssertNil(directory.displayName(for: "member-1"))
     }
 
     func testAllMembersSortedByDisplayName() async {

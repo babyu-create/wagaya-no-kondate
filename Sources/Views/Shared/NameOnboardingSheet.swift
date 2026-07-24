@@ -5,6 +5,7 @@ struct NameOnboardingSheet: View {
 
     @State private var name: String = ""
     @State private var isSaving = false
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -32,16 +33,20 @@ struct NameOnboardingSheet: View {
             }
             .warmScrollBackground()
             .navigationBarTitleDisplayMode(.inline)
+            .errorAlert($errorMessage)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("はじめる") {
                         Task {
                             isSaving = true
-                            await environment.memberDirectory.setDisplayName(
+                            let ok = await environment.memberDirectory.setDisplayName(
                                 name.trimmingCharacters(in: .whitespaces),
                                 memberID: environment.currentMemberID
                             )
                             isSaving = false
+                            if !ok {
+                                errorMessage = "保存できませんでした。通信環境を確認して、もう一度お試しください。"
+                            }
                         }
                     }
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
