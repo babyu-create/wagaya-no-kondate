@@ -73,9 +73,9 @@ final class CloudKitReviewRepository: ReviewRepository {
         let id = Review.upsertID(recipeID: recipeID, memberID: memberID)
         let review = Review(id: id, recipeID: recipeID, memberID: memberID, rating: rating, comment: comment)
         let record = review.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        let saved = try await service.upsert(record, in: target.database)
         guard let savedReview = Review(record: saved) else {
-            throw CloudKitServiceError.familyZoneNotFound
+            throw CloudKitServiceError.saveFailed
         }
         return savedReview
     }

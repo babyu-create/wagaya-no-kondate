@@ -61,7 +61,7 @@ final class CloudKitWeeklyWishRepository: WeeklyWishRepository {
 
         let wish = WeeklyWish(id: id, recipeID: recipeID, memberID: memberID, weekOf: weekOf)
         let record = wish.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        let saved = try await service.upsert(record, in: target.database)
         return WeeklyWish(record: saved)
     }
 

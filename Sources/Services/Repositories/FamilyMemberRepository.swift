@@ -45,9 +45,10 @@ final class CloudKitFamilyMemberRepository: FamilyMemberRepository {
     func upsert(_ member: FamilyMember) async throws -> FamilyMember {
         let target = try await service.resolveWritableTarget()
         let record = member.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        // 名前・アイコンの変更（同じmemberID）を上書きできるようにする。
+        let saved = try await service.upsert(record, in: target.database)
         guard let savedMember = FamilyMember(record: saved) else {
-            throw CloudKitServiceError.familyZoneNotFound
+            throw CloudKitServiceError.saveFailed
         }
         return savedMember
     }

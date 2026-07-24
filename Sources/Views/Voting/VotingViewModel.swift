@@ -109,10 +109,8 @@ final class VotingViewModel: ObservableObject {
 
     func startTopRatedPoll(threshold: Int = 4, deadline: Date? = nil) async {
         do {
-            var allReviews: [Review] = []
-            for recipe in recipes {
-                allReviews.append(contentsOf: try await reviewRepository.fetchAll(recipeID: recipe.id))
-            }
+            // レシピごとに問い合わせる(N+1)のではなく、全レビューを一度に取得する。
+            let allReviews = try await reviewRepository.fetchAllReviews()
             let eligible = ReviewAggregator.recipes(ratedAtLeast: threshold, recipes: recipes, reviews: allReviews)
             await createPoll(type: .topRated, genre: nil, recipeIDs: eligible.map(\.id), deadline: deadline)
         } catch {

@@ -50,9 +50,9 @@ final class CloudKitFridgeItemRepository: FridgeItemRepository {
     func save(_ item: FridgeItem) async throws -> FridgeItem {
         let target = try await service.resolveWritableTarget()
         let record = item.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        let saved = try await service.upsert(record, in: target.database)
         guard let savedItem = FridgeItem(record: saved) else {
-            throw CloudKitServiceError.familyZoneNotFound
+            throw CloudKitServiceError.saveFailed
         }
         return savedItem
     }

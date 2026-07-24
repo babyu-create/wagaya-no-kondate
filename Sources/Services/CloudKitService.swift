@@ -66,9 +66,25 @@ final class CloudKitService {
             return (sharedDatabase, zone.zoneID)
         }
     }
+
+    /// 既存レコードでも上書き保存する（家族の共同編集なので「最後の書き込みを優先」）。
+    ///
+    /// `CKDatabase.save(_:)` は `.ifServerRecordUnchanged` ポリシーのため、
+    /// 決定的ID（レシピID・評価のrecipeID_memberID等）で作り直したレコードを再保存すると、
+    /// ローカルの変更タグがサーバーと一致せず `serverRecordChanged` で失敗してしまう。
+    /// レシピ編集・評価の付け直し・投票のやり直し・名前/アイコン変更などが実運用で失敗するため、
+    /// 上書きを許す `.allKeys` ポリシーで modifyRecords を使う。
+    func upsert(_ record: CKRecord, in database: CKDatabase) async throws -> CKRecord {
+        let result = try await database.modifyRecords(saving: [record], deleting: [], savePolicy: .allKeys)
+        guard let saved = try result.saveResults[record.recordID]?.get() else {
+            throw CloudKitServiceError.saveFailed
+        }
+        return saved
+    }
 }
 
 enum CloudKitServiceError: Error {
     case shareCreationFailed
     case familyZoneNotFound
+    case saveFailed
 }

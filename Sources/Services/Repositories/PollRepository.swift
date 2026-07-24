@@ -126,23 +126,16 @@ final class CloudKitPollRepository: PollRepository {
     ) async throws -> (poll: Poll, options: [PollOption]) {
         let target = try await service.resolveWritableTarget()
         let poll = Poll(type: type, genre: genre, deadline: deadline, createdByMemberID: createdByMemberID)
-        let pollRecord = poll.toRecord(zoneID: target.zoneID)
-        let savedPollRecord = try await target.database.save(pollRecord)
-        guard let savedPoll = Poll(record: savedPollRecord) else {
-            throw CloudKitServiceError.familyZoneNotFound
+        let options = recipeIDs.map { PollOption(pollID: poll.id, recipeID: $0) }
+
+        // Poll本体と選択肢をまとめて1リクエストで保存する（従来は1+N回の往復だった）。
+        let records = [poll.toRecord(zoneID: target.zoneID)] + options.map { $0.toRecord(zoneID: target.zoneID) }
+        let result = try await target.database.modifyRecords(saving: records, deleting: [], savePolicy: .allKeys)
+        for (_, saveResult) in result.saveResults {
+            _ = try saveResult.get()
         }
 
-        var savedOptions: [PollOption] = []
-        for recipeID in recipeIDs {
-            let option = PollOption(pollID: savedPoll.id, recipeID: recipeID)
-            let record = option.toRecord(zoneID: target.zoneID)
-            let saved = try await target.database.save(record)
-            if let savedOption = PollOption(record: saved) {
-                savedOptions.append(savedOption)
-            }
-        }
-
-        return (savedPoll, savedOptions)
+        return (poll, options)
     }
 
     func vote(pollID: String, pollOptionID: String, memberID: String) async throws -> Vote {
@@ -150,9 +143,10 @@ final class CloudKitPollRepository: PollRepository {
         let id = Vote.upsertID(pollID: pollID, memberID: memberID)
         let vote = Vote(id: id, pollID: pollID, pollOptionID: pollOptionID, memberID: memberID)
         let record = vote.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        // 投票のやり直し（同じpollID_memberID）を上書きできるようにする。
+        let saved = try await service.upsert(record, in: target.database)
         guard let savedVote = Vote(record: saved) else {
-            throw CloudKitServiceError.familyZoneNotFound
+            throw CloudKitServiceError.saveFailed
         }
         return savedVote
     }
@@ -162,6 +156,7 @@ final class CloudKitPollRepository: PollRepository {
         var updated = poll
         updated.status = .closed
         let record = updated.toRecord(zoneID: target.zoneID)
-        _ = try await target.database.save(record)
+        // 既存Pollのstatus更新なので上書き保存。
+        _ = try await service.upsert(record, in: target.database)
     }
 }

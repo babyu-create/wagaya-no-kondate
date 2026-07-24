@@ -50,9 +50,9 @@ final class CloudKitRecipeRepository: RecipeRepository {
     func save(_ recipe: Recipe) async throws -> Recipe {
         let target = try await service.resolveWritableTarget()
         let record = recipe.toRecord(zoneID: target.zoneID)
-        let saved = try await target.database.save(record)
+        let saved = try await service.upsert(record, in: target.database)
         guard let savedRecipe = Recipe(record: saved) else {
-            throw CloudKitServiceError.familyZoneNotFound
+            throw CloudKitServiceError.saveFailed
         }
         return savedRecipe
     }
