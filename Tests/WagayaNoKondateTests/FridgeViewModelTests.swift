@@ -62,6 +62,21 @@ final class FridgeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fridgeItems.count, 2)
     }
 
+    func testAddItemPreventsDuplicateByNormalizedName() async {
+        let viewModel = FridgeViewModel(
+            fridgeRepository: InMemoryFridgeItemRepository(),
+            recipeRepository: InMemoryRecipeRepository(),
+            currentMemberID: "m1"
+        )
+
+        await viewModel.addItem(name: "にんじん", quantity: "1本")
+        // カタカナ・前後の空白違いは同じ材料とみなして重複追加しない。
+        await viewModel.addItem(name: " ニンジン ", quantity: "2本")
+
+        XCTAssertEqual(viewModel.fridgeItems.count, 1)
+        XCTAssertEqual(viewModel.fridgeItems.first?.displayName, "にんじん")
+    }
+
     func testAddItemIgnoresBlankName() async {
         let viewModel = FridgeViewModel(
             fridgeRepository: InMemoryFridgeItemRepository(),

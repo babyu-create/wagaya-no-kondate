@@ -50,6 +50,9 @@ final class FridgeViewModel: ObservableObject {
     func addItem(name: String, quantity: String?) async {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
+        // 表記ゆれを吸収して、すでにある材料と同じものは重複追加しない。
+        let normalized = Ingredient.normalize(trimmedName)
+        guard !fridgeItems.contains(where: { $0.normalizedName == normalized }) else { return }
         do {
             let saved = try await fridgeRepository.save(
                 FridgeItem(displayName: trimmedName, quantity: quantity, updatedByMemberID: currentMemberID)

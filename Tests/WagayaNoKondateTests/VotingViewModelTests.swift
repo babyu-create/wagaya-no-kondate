@@ -75,6 +75,29 @@ final class VotingViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.results.first?.count, 1)
     }
 
+    func testCastVoteBlockedAfterDeadline() async throws {
+        let recipeRepository = InMemoryRecipeRepository()
+        let recipe = try await recipeRepository.save(
+            Recipe(title: "カレー", instructions: "-", servings: 2, genre: .other, createdByMemberID: "m1")
+        )
+        let viewModel = makeViewModel(recipeRepository: recipeRepository)
+        await viewModel.load()
+        // 締め切りを過去に設定して投票を作成する。
+        await viewModel.createPoll(
+            type: .curated,
+            genre: nil,
+            recipeIDs: [recipe.id],
+            deadline: Date(timeIntervalSinceNow: -60)
+        )
+
+        let optionID = try XCTUnwrap(viewModel.options.first?.id)
+        await viewModel.castVote(optionID: optionID)
+
+        XCTAssertTrue(viewModel.isVotingClosed)
+        XCTAssertNil(viewModel.myVote)
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
     func testCloseCurrentPollClearsPollAndVotes() async throws {
         let recipeRepository = InMemoryRecipeRepository()
         let recipe = try await recipeRepository.save(

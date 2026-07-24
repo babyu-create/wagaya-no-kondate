@@ -89,26 +89,19 @@ private struct VotingContentView: View {
                             Haptics.lightTap()
                             Task { await viewModel.castVote(optionID: result.optionID) }
                         } label: {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(recipe.title)
-                                        .foregroundStyle(.primary)
-                                    Text("\(result.count)票")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                if viewModel.myVote?.pollOptionID == result.optionID {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(AppTheme.accent)
-                                }
-                            }
+                            voteRow(recipe: recipe, result: result)
                         }
+                        .disabled(viewModel.isVotingClosed)
                         .warmCardRow()
                     }
                 }
             } header: {
                 Text(pollTypeLabel(poll))
+            } footer: {
+                if viewModel.isVotingClosed {
+                    Text("この投票は締め切られました。")
+                        .foregroundStyle(AppTheme.accent)
+                }
             }
 
             Section {
@@ -122,6 +115,25 @@ private struct VotingContentView: View {
         }
         .listStyle(.plain)
         .warmScrollBackground()
+    }
+
+    private func voteRow(recipe: Recipe, result: VoteTally.Result) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(recipe.title)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if viewModel.myVote?.pollOptionID == result.optionID {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(AppTheme.accent)
+                }
+                Text("\(result.count)票")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            ProgressView(value: VoteTally.share(count: result.count, total: viewModel.totalVotes))
+                .tint(AppTheme.accent)
+        }
     }
 
     private func deadlineLabel(_ deadline: Date) -> String {

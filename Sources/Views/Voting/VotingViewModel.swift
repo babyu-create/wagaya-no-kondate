@@ -34,6 +34,16 @@ final class VotingViewModel: ObservableObject {
         votes.first { $0.memberID == currentMemberID }
     }
 
+    var totalVotes: Int {
+        votes.count
+    }
+
+    /// 締め切りを過ぎた投票かどうか。過ぎていれば投票操作を止める。
+    var isVotingClosed: Bool {
+        guard let poll else { return false }
+        return PollDeadline.isExpired(poll, now: Date())
+    }
+
     func recipe(for optionID: String) -> Recipe? {
         guard let option = options.first(where: { $0.id == optionID }) else { return nil }
         return recipes.first { $0.id == option.recipeID }
@@ -60,6 +70,10 @@ final class VotingViewModel: ObservableObject {
 
     func castVote(optionID: String) async {
         guard let poll else { return }
+        guard !PollDeadline.isExpired(poll, now: Date()) else {
+            errorMessage = "この投票は締め切られました。"
+            return
+        }
         do {
             let vote = try await pollRepository.vote(pollID: poll.id, pollOptionID: optionID, memberID: currentMemberID)
             if let index = votes.firstIndex(where: { $0.id == vote.id }) {
