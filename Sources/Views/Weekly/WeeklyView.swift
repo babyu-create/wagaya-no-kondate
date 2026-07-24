@@ -48,10 +48,12 @@ private struct WeeklyContentView: View {
                         }
                     }
 
-                    Section("すべてのレシピ") {
-                        ForEach(viewModel.recipes) { recipe in
-                            weeklyRow(recipe)
-                                .warmCardRow()
+                    if !viewModel.otherRecipes.isEmpty {
+                        Section(viewModel.wishedRecipes.isEmpty ? "すべてのレシピ" : "ほかのレシピ") {
+                            ForEach(viewModel.otherRecipes) { recipe in
+                                weeklyRow(recipe)
+                                    .warmCardRow()
+                            }
                         }
                     }
                 }

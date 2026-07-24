@@ -4,6 +4,7 @@ struct RecipeListView: View {
     @StateObject private var viewModel: RecipeListViewModel
     @State private var isPresentingForm = false
     @State private var searchText = ""
+    @State private var sortOrder: RecipeSortOrder = .newest
     @State private var pendingDeleteTargets: [Recipe] = []
     @State private var isConfirmingDelete = false
 
@@ -17,8 +18,9 @@ struct RecipeListView: View {
         )
     }
 
-    private var filteredRecipes: [Recipe] {
-        RecipeSearch.filter(viewModel.recipes, query: searchText)
+    private var displayedRecipes: [Recipe] {
+        let filtered = RecipeSearch.filter(viewModel.recipes, query: searchText)
+        return RecipeSort.sorted(filtered, by: sortOrder, ratings: viewModel.averageRatings)
     }
 
     var body: some View {
@@ -43,6 +45,20 @@ struct RecipeListView: View {
             }
         }
         .toolbar {
+            if viewModel.recipes.count > 1 {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Picker("並び替え", selection: $sortOrder) {
+                            ForEach(RecipeSortOrder.allCases) { order in
+                                Label(order.rawValue, systemImage: order.systemImage).tag(order)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down")
+                    }
+                    .accessibilityLabel("並び替え")
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     isPresentingForm = true
@@ -85,15 +101,16 @@ struct RecipeListView: View {
     }
 
     private var recipeList: some View {
-        List {
-            ForEach(filteredRecipes) { recipe in
+        let recipes = displayedRecipes
+        return List {
+            ForEach(recipes) { recipe in
                 NavigationLink(value: recipe) {
                     RecipeRow(recipe: recipe, averageRating: viewModel.averageRating(for: recipe.id))
                 }
                 .warmCardRow()
             }
             .onDelete { offsets in
-                pendingDeleteTargets = offsets.map { filteredRecipes[$0] }
+                pendingDeleteTargets = offsets.map { recipes[$0] }
                 isConfirmingDelete = true
             }
         }
@@ -101,7 +118,7 @@ struct RecipeListView: View {
         .warmScrollBackground()
         .searchable(text: $searchText, prompt: "レシピ・材料・ジャンルで検索")
         .overlay {
-            if !searchText.isEmpty && filteredRecipes.isEmpty {
+            if !searchText.isEmpty && recipes.isEmpty {
                 ContentUnavailableView.search(text: searchText)
             }
         }

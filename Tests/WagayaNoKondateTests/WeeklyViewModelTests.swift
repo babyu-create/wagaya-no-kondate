@@ -46,6 +46,25 @@ final class WeeklyViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.wishedRecipes.isEmpty)
     }
 
+    func testOtherRecipesExcludesMyWishedRecipes() async throws {
+        let recipeRepository = InMemoryRecipeRepository()
+        let weeklyWishRepository = InMemoryWeeklyWishRepository()
+        let wished = try await recipeRepository.save(makeRecipe(title: "カレー"))
+        let notWished = try await recipeRepository.save(makeRecipe(title: "味噌汁"))
+        _ = try await weeklyWishRepository.toggle(recipeID: wished.id, memberID: "m1", weekOf: "2026-W30")
+
+        let viewModel = WeeklyViewModel(
+            recipeRepository: recipeRepository,
+            weeklyWishRepository: weeklyWishRepository,
+            currentMemberID: "m1",
+            weekOf: "2026-W30"
+        )
+        await viewModel.load()
+
+        XCTAssertEqual(viewModel.wishedRecipes.map(\.id), [wished.id])
+        XCTAssertEqual(viewModel.otherRecipes.map(\.id), [notWished.id])
+    }
+
     func testWishCountReflectsMultipleMembers() async throws {
         let recipeRepository = InMemoryRecipeRepository()
         let weeklyWishRepository = InMemoryWeeklyWishRepository()

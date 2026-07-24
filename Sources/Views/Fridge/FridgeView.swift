@@ -35,6 +35,7 @@ private struct FridgeContentView: View {
                     TextField("数量（任意）", text: $newItemQuantity)
                         .frame(width: 100)
                     Button {
+                        Haptics.lightTap()
                         Task {
                             await viewModel.addItem(
                                 name: newItemName,

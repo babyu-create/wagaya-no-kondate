@@ -22,6 +22,7 @@ private struct RecipeDetailContentView: View {
     @ObservedObject private var memberDirectory: MemberDirectory
     private let onRecipeChanged: (Recipe) -> Void
     @State private var isPresentingEditForm = false
+    @State private var isShowingFullPhoto = false
     @State private var commentDraft = ""
 
     init(
@@ -45,9 +46,17 @@ private struct RecipeDetailContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                RecipeThumbnail(url: viewModel.recipe.localImageURL, cornerRadius: 12)
-                    .frame(height: 220)
-                    .frame(maxWidth: .infinity)
+                Button {
+                    if viewModel.recipe.localImageURL != nil {
+                        isShowingFullPhoto = true
+                    }
+                } label: {
+                    RecipeThumbnail(url: viewModel.recipe.localImageURL, cornerRadius: 12)
+                        .frame(height: 220)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.recipe.localImageURL == nil)
 
                 Text(viewModel.recipe.title)
                     .font(.title2.bold())
@@ -113,6 +122,11 @@ private struct RecipeDetailContentView: View {
                     viewModel.applyEdit(updated)
                     onRecipeChanged(updated)
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $isShowingFullPhoto) {
+            if let url = viewModel.recipe.localImageURL {
+                FullScreenImageView(url: url)
             }
         }
         .task {

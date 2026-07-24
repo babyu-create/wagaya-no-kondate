@@ -29,6 +29,11 @@ final class WeeklyViewModel: ObservableObject {
         recipes.filter { isWishedByMe($0.id) }
     }
 
+    /// 自分がまだ「今週食べたい」にしていないレシピ。上の希望リストとの重複表示を避ける。
+    var otherRecipes: [Recipe] {
+        recipes.filter { !isWishedByMe($0.id) }
+    }
+
     func wishCount(for recipeID: String) -> Int {
         wishes.filter { $0.recipeID == recipeID }.count
     }

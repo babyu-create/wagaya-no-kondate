@@ -200,6 +200,7 @@ struct RecipeFormView: View {
 
         do {
             let saved = try await environment.recipeRepository.save(recipe)
+            Haptics.success()
             onSaved(saved)
             dismiss()
         } catch {
