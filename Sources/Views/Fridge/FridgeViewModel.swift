@@ -31,16 +31,7 @@ final class FridgeViewModel: ObservableObject {
 
     /// レシピに登場する材料名から重複を除いたもの。材料入力のサジェストに使う。
     var knownIngredientNames: [String] {
-        var seen = Set<String>()
-        var names: [String] = []
-        for recipe in recipes {
-            for ingredient in recipe.ingredients {
-                guard !seen.contains(ingredient.normalizedName) else { continue }
-                seen.insert(ingredient.normalizedName)
-                names.append(ingredient.displayName)
-            }
-        }
-        return names
+        KnownIngredients.names(from: recipes)
     }
 
     func load() async {

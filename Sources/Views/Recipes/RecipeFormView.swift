@@ -145,16 +145,7 @@ struct RecipeFormView: View {
 
     private func loadKnownIngredientNames() async {
         guard let allRecipes = try? await environment.recipeRepository.fetchAll() else { return }
-        var seen = Set<String>()
-        var names: [String] = []
-        for recipe in allRecipes {
-            for ingredient in recipe.ingredients {
-                guard !seen.contains(ingredient.normalizedName) else { continue }
-                seen.insert(ingredient.normalizedName)
-                names.append(ingredient.displayName)
-            }
-        }
-        knownIngredientNames = names
+        knownIngredientNames = KnownIngredients.names(from: allRecipes)
     }
 
     private func addIngredient() {

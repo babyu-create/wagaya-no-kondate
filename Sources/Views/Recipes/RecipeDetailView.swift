@@ -119,17 +119,7 @@ private struct RecipeDetailContentView: View {
             await viewModel.load()
             commentDraft = viewModel.myComment
         }
-        .alert(
-            "エラー",
-            isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
-            )
-        ) {
-            Button("OK") { viewModel.errorMessage = nil }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
-        }
+        .errorAlert($viewModel.errorMessage)
     }
 
     private var reviewSection: some View {
