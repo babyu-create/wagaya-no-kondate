@@ -88,7 +88,7 @@ struct RecipeListView: View {
         List {
             ForEach(filteredRecipes) { recipe in
                 NavigationLink(value: recipe) {
-                    RecipeRow(recipe: recipe)
+                    RecipeRow(recipe: recipe, averageRating: viewModel.averageRating(for: recipe.id))
                 }
                 .warmCardRow()
             }

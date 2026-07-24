@@ -3,6 +3,9 @@ import Foundation
 
 protocol ReviewRepository {
     func fetchAll(recipeID: String) async throws -> [Review]
+    /// 家族の全レビューをまとめて取得する。一覧で各レシピの平均評価を出す際に、
+    /// レシピごとに問い合わせる(N+1)のを避けるために使う。
+    func fetchAllReviews() async throws -> [Review]
     func upsert(recipeID: String, memberID: String, rating: Int, comment: String?) async throws -> Review
     /// レシピが削除された際に、そのレシピに紐づくレビューをすべて削除する。
     func deleteAll(recipeID: String) async throws
@@ -19,6 +22,10 @@ final class InMemoryReviewRepository: ReviewRepository {
 
     func fetchAll(recipeID: String) async throws -> [Review] {
         storage.values.filter { $0.recipeID == recipeID }
+    }
+
+    func fetchAllReviews() async throws -> [Review] {
+        Array(storage.values)
     }
 
     func upsert(recipeID: String, memberID: String, rating: Int, comment: String?) async throws -> Review {
@@ -44,6 +51,16 @@ final class CloudKitReviewRepository: ReviewRepository {
         let target = try await service.resolveWritableTarget()
         let predicate = NSPredicate(format: "recipeID == %@", recipeID)
         let query = CKQuery(recordType: Review.recordType, predicate: predicate)
+        let (matchResults, _) = try await target.database.records(matching: query, inZoneWith: target.zoneID)
+        return matchResults.compactMap { _, result in
+            guard let record = try? result.get() else { return nil }
+            return Review(record: record)
+        }
+    }
+
+    func fetchAllReviews() async throws -> [Review] {
+        let target = try await service.resolveWritableTarget()
+        let query = CKQuery(recordType: Review.recordType, predicate: NSPredicate(value: true))
         let (matchResults, _) = try await target.database.records(matching: query, inZoneWith: target.zoneID)
         return matchResults.compactMap { _, result in
             guard let record = try? result.get() else { return nil }

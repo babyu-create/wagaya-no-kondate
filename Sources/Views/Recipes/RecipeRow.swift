@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecipeRow: View {
     let recipe: Recipe
+    var averageRating: Double?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -21,6 +22,15 @@ struct RecipeRow: View {
                     }
                 }
                 .font(.caption)
+
+                if let averageRating {
+                    HStack(spacing: 4) {
+                        StarRatingView(rating: averageRating, size: 11)
+                        Text(String(format: "%.1f", averageRating))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .padding(.vertical, 4)

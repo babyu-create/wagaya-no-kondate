@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class RecipeListViewModel: ObservableObject {
     @Published var recipes: [Recipe] = []
+    @Published private(set) var averageRatings: [String: Double] = [:]
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -16,14 +17,32 @@ final class RecipeListViewModel: ObservableObject {
         self.weeklyWishRepository = weeklyWishRepository
     }
 
+    func averageRating(for recipeID: String) -> Double? {
+        averageRatings[recipeID]
+    }
+
     func load() async {
         isLoading = true
         defer { isLoading = false }
         do {
-            recipes = try await repository.fetchAll()
+            async let recipesTask = repository.fetchAll()
+            async let reviewsTask = reviewRepository.fetchAllReviews()
+            recipes = try await recipesTask
+            averageRatings = Self.computeAverages(recipes: recipes, reviews: try await reviewsTask)
         } catch {
             errorMessage = AppError.message(for: error)
         }
+    }
+
+    /// 各レシピの平均評価をまとめて算出する。
+    static func computeAverages(recipes: [Recipe], reviews: [Review]) -> [String: Double] {
+        var result: [String: Double] = [:]
+        for recipe in recipes {
+            if let average = ReviewAggregator.averageRating(for: recipe.id, reviews: reviews) {
+                result[recipe.id] = average
+            }
+        }
+        return result
     }
 
     func delete(at offsets: IndexSet) async {
